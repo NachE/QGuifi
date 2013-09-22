@@ -1,4 +1,4 @@
-guifidecrypter-ng
-=================
+QGuifi
+======
 
-New generation of guifidecrypter, a graphical interface of airodump-ng
+New generation of guifidecrypter, a graphical interface of airodump-ng. Renamed to QGuifi
