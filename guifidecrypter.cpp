@@ -30,9 +30,13 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
     ui->setupUi(this);
     timerXmlLoop = new QTimer(this);
     connect(timerXmlLoop, SIGNAL(timeout()), this, SLOT(readXml()));
-    xmlfilename = "/tmp/1304109527.0-01.kismet.netxmls";
+    xmlfilename = "/tmp/1304109527.0-01.kismet.netxml"; //This is just for debug
+    airodumpProcess = new QProcess(this);
+    connect(airodumpProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onAirodump_finished(int, QProcess::ExitStatus)));
     ui->labelOn->setVisible(false);
     ui->labelAction->setVisible(false);
+    updateNetworkInterfaces();
+
 
 }
 
@@ -46,6 +50,14 @@ void GuifiDecrypter::on_checkBoxChannel_toggled(bool checked)
         ui->lineEditChannel->setEnabled(!checked); //awsom :D
 }
 
+void GuifiDecrypter::onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    //QMessageBox::information(this, "", "process finished");
+    qDebug() << "Finished airodump" << exitCode << " - " << exitStatus;
+    ui->textEditDebug->append(QString("Finished airodump-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
+    ;
+}
+
 void GuifiDecrypter::on_textEditDebug_textChanged()
 {
     ui->statusBar->showMessage("New Message in Debug Tab", 1599);
@@ -57,6 +69,7 @@ void GuifiDecrypter::on_toolButtonStart_toggled(bool checked)
         qDebug() << "Scan On";
         timerXmlLoop->start(2000);
         ui->labelOn->setVisible(true);
+        startAirodump();
     }else{
         qDebug() << "Scan Off";
         timerXmlLoop->stop();
@@ -65,6 +78,24 @@ void GuifiDecrypter::on_toolButtonStart_toggled(bool checked)
     }
 }
 
+void GuifiDecrypter::startAirodump(){
+    //DONE ME, USE WIDGETS
+    QString command = "/bin/touch";
+    QStringList arguments;
+    arguments << "/tmp/testttttttttttttttttttt";
+    airodumpProcess->start(command, arguments);
+}
+
+void GuifiDecrypter::updateNetworkInterfaces(){
+    QList<QNetworkInterface> list = QNetworkInterface::allInterfaces();
+    QNetworkInterface iface;
+    ui->comboBoxInterface->clear();
+    foreach( iface, list ){
+        ui->comboBoxInterface->addItem(iface.name());
+        qDebug() << "fount interface: " << iface.name();
+        ui->textEditDebug->append("fount interface: " + iface.name());
+    }
+}
 
 void GuifiDecrypter::readXml(){
     QFile file(xmlfilename);

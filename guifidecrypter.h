@@ -27,6 +27,7 @@
 #include <QXmlStreamReader>
 #include <QString>
 #include <QDebug>
+#include <QtNetwork/QtNetwork>
 #include "xmlreader.h"
 
 namespace Ui {
@@ -40,14 +41,16 @@ class GuifiDecrypter : public QMainWindow
 public:
     explicit GuifiDecrypter(QWidget *parent = 0);
     ~GuifiDecrypter();
-    QTimer *timerXmlLoop;
-    QString xmlfilename;
+
+
 
 private slots:
     void on_toolButtonStart_toggled(bool checked);
     void readXml();
     void parseWirelessNetwork(QXmlStreamReader& xml);
-
+    void updateNetworkInterfaces();
+    void startAirodump();
+    void onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus);
 
     void on_textEditDebug_textChanged();
 
@@ -55,6 +58,9 @@ private slots:
 
 private:
     Ui::GuifiDecrypter *ui;
+    QTimer *timerXmlLoop;
+    QString xmlfilename;
+    QProcess *airodumpProcess;
 
 };
 
