@@ -87,6 +87,9 @@ void GuifiDecrypter::startAirodump(){
 }
 
 void GuifiDecrypter::updateNetworkInterfaces(){
+    //NOTE: The new airodump-ng seems to have
+    //hability to capture from various interfaces
+    //at same time. Keep Watching this.
     QList<QNetworkInterface> list = QNetworkInterface::allInterfaces();
     QNetworkInterface iface;
     ui->comboBoxInterface->clear();
