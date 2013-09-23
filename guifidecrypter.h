@@ -28,7 +28,6 @@
 #include <QString>
 #include <QDebug>
 #include <QtNetwork/QtNetwork>
-#include "xmlreader.h"
 
 namespace Ui {
 class GuifiDecrypter;
