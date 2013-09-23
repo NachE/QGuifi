@@ -13,11 +13,8 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        guifidecrypter.cpp \
-    consoleout.cpp \
-    unixifaceslist.cpp
+        guifidecrypter.cpp 
 
-HEADERS  += guifidecrypter.h \
-    consoleout.h
+HEADERS  += guifidecrypter.h 
 
 FORMS    += guifidecrypter.ui
