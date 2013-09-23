@@ -91,9 +91,9 @@ void GuifiDecrypter::updateNetworkInterfaces(){
     QNetworkInterface iface;
     ui->comboBoxInterface->clear();
     foreach( iface, list ){
-        ui->comboBoxInterface->addItem(iface.name());
-        qDebug() << "fount interface: " << iface.name();
-        ui->textEditDebug->append("fount interface: " + iface.name());
+        ui->comboBoxInterface->addItem(iface.humanReadableName());//in unix humanReadableName prints the same as name()
+        qDebug() << "fount interface: " << iface.humanReadableName();
+        ui->textEditDebug->append("fount interface: " + iface.humanReadableName());
     }
 }
 
