@@ -100,6 +100,18 @@ void GuifiDecrypter::updateNetworkInterfaces(){
     }
 }
 
+
+void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
+{
+    QFileDialog *aircrackdir = new QFileDialog;
+    aircrackdir->setFileMode(QFileDialog::Directory);
+    QString dirpath = aircrackdir->getExistingDirectory(this,tr("Select Aircrack-ng directory"));
+    if(dirpath.length() > 0){
+        ui->lineEditSelectAirDir->setText(dirpath);
+        //TODO: Check if binary exist
+    }
+}
+
 void GuifiDecrypter::readXml(){
     QFile file(xmlfilename);
 
@@ -131,7 +143,8 @@ void GuifiDecrypter::readXml(){
             }
             else if (xml.atEnd())
             {
-                qDebug() << "End of file";
+                continue;
+                //qDebug() << "End of file";
             }
         }
     }
@@ -224,5 +237,6 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
 //columns << QString("columna7");
 
 //tree->addTopLevelItem(new QTreeWidgetItem(columns));
+
 
 

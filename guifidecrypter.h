@@ -28,6 +28,7 @@
 #include <QString>
 #include <QDebug>
 #include <QtNetwork/QtNetwork>
+#include <QFileDialog>
 
 namespace Ui {
 class GuifiDecrypter;
@@ -54,6 +55,8 @@ private slots:
     void on_textEditDebug_textChanged();
 
     void on_checkBoxChannel_toggled(bool checked);
+
+    void on_pushButtonSelectAirDir_clicked();
 
 private:
     Ui::GuifiDecrypter *ui;
