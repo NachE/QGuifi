@@ -50,19 +50,27 @@ private slots:
     void parseWirelessNetwork(QXmlStreamReader& xml);
     void updateNetworkInterfaces();
     void startAirodump();
+    void startAirserv();
+    void stopAirodump();
+    void stopAirserv();
     void onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus);
-
+    void onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus);
     void on_textEditDebug_textChanged();
 
     void on_checkBoxChannel_toggled(bool checked);
 
     void on_pushButtonSelectAirDir_clicked();
 
+    void on_pushButtonAirservDevFile_clicked();
+
+    void on_pushButtonSelectCapturesDir_clicked();
+
 private:
     Ui::GuifiDecrypter *ui;
     QTimer *timerXmlLoop;
     QString xmlfilename;
     QProcess *airodumpProcess;
+    QProcess *airservProcess;
 
 };
 

@@ -32,12 +32,12 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
     connect(timerXmlLoop, SIGNAL(timeout()), this, SLOT(readXml()));
     xmlfilename = "/tmp/1304109527.0-01.kismet.netxml"; //This is just for debug
     airodumpProcess = new QProcess(this);
+    airservProcess = new QProcess(this);
     connect(airodumpProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onAirodump_finished(int, QProcess::ExitStatus)));
+    connect(airservProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onAirserv_finished(int, QProcess::ExitStatus)));
     ui->labelOn->setVisible(false);
     ui->labelAction->setVisible(false);
     updateNetworkInterfaces();
-
-
 }
 
 GuifiDecrypter::~GuifiDecrypter()
@@ -55,7 +55,13 @@ void GuifiDecrypter::onAirodump_finished(int exitCode, QProcess::ExitStatus exit
     //QMessageBox::information(this, "", "process finished");
     qDebug() << "Finished airodump" << exitCode << " - " << exitStatus;
     ui->textEditDebug->append(QString("Finished airodump-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
-    ;
+}
+
+void GuifiDecrypter::onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus)
+{
+    //QMessageBox::information(this, "", "process finished");
+    qDebug() << "Finished airserv" << exitCode << " - " << exitStatus;
+    ui->textEditDebug->append(QString("Finished airserv-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
 }
 
 void GuifiDecrypter::on_textEditDebug_textChanged()
@@ -70,11 +76,14 @@ void GuifiDecrypter::on_toolButtonStart_toggled(bool checked)
         timerXmlLoop->start(2000);
         ui->labelOn->setVisible(true);
         startAirodump();
+        startAirserv();
     }else{
         qDebug() << "Scan Off";
         timerXmlLoop->stop();
         ui->labelOn->setVisible(false);
         ui->labelAction->setVisible(false);
+        stopAirodump();
+        stopAirserv();
     }
 }
 
@@ -86,6 +95,19 @@ void GuifiDecrypter::startAirodump(){
     airodumpProcess->start(command, arguments);
 }
 
+void GuifiDecrypter::startAirserv(){
+    QDir aircrackSuitPath = QDir(ui->lineEditSelectAirDir->text());
+    QDir airservPath = aircrackSuitPath.path() + "/bin/airserv-ng";
+    QStringList arguments;
+    arguments << "-d" << ui->lineEditAirservDev->text() << "-p" << ui->lineEditAirservPort->text() << "-c" << "7";
+    qDebug() << airservPath.path() << " " << arguments;
+    airservProcess->start(airservPath.path(), arguments);
+}
+
+void GuifiDecrypter::stopAirserv(){airservProcess->close();}
+void GuifiDecrypter::stopAirodump(){airodumpProcess->close();}
+
+
 void GuifiDecrypter::updateNetworkInterfaces(){
     //NOTE: The new airodump-ng seems to have
     //hability to capture from various interfaces
@@ -93,13 +115,24 @@ void GuifiDecrypter::updateNetworkInterfaces(){
     QList<QNetworkInterface> list = QNetworkInterface::allInterfaces();
     QNetworkInterface iface;
     ui->comboBoxInterface->clear();
+    ui->comboBoxInterfaceAirserv->clear();
+    ui->comboBoxInterface->addItem("Use airserv-ng");
     foreach( iface, list ){
         ui->comboBoxInterface->addItem(iface.humanReadableName());//in unix humanReadableName prints the same as name()
+        ui->comboBoxInterfaceAirserv->addItem(iface.humanReadableName());//in unix humanReadableName prints the same as name()
         qDebug() << "fount interface: " << iface.humanReadableName();
         ui->textEditDebug->append("fount interface: " + iface.humanReadableName());
     }
 }
 
+void GuifiDecrypter::on_pushButtonAirservDevFile_clicked()
+{
+    QFileDialog *airservDevDialog = new QFileDialog;
+    QString filename = airservDevDialog->getOpenFileName(this,tr("Select Airdev-ng device file"));
+    if(filename.length() > 0){
+        ui->lineEditAirservDev->setText(filename);
+    }
+}
 
 void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
 {
@@ -108,6 +141,17 @@ void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
     QString dirpath = aircrackdir->getExistingDirectory(this,tr("Select Aircrack-ng directory"));
     if(dirpath.length() > 0){
         ui->lineEditSelectAirDir->setText(dirpath);
+        //TODO: Check if binary exist
+    }
+}
+
+void GuifiDecrypter::on_pushButtonSelectCapturesDir_clicked()
+{
+    QFileDialog *capturesdir = new QFileDialog;
+    capturesdir->setFileMode(QFileDialog::Directory);
+    QString dirpath = capturesdir->getExistingDirectory(this,tr("Select Aircrack-ng directory"));
+    if(dirpath.length() > 0){
+        ui->lineEditSelectCapturesDir->setText(dirpath);
         //TODO: Check if binary exist
     }
 }
@@ -150,7 +194,6 @@ void GuifiDecrypter::readXml(){
     }
 
     ui->labelAction->setVisible(false);
-
 }
 
 void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
@@ -211,6 +254,8 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
 
 
 
+
+
 // NOTES
 //
 //ui->toolButtonStart->click();
@@ -237,6 +282,7 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
 //columns << QString("columna7");
 
 //tree->addTopLevelItem(new QTreeWidgetItem(columns));
+
 
 
 
