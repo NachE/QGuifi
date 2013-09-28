@@ -55,8 +55,12 @@ private slots:
     void stopAirserv();
     void restoreSettings();
     void saveSettings();
+    QString getSecondsUID();
+
     void onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus);
     void onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus);
+    void onAirserv_stateChanged(QProcess::ProcessState newStatus);
+    void onAirodump_stateChanged(QProcess::ProcessState newStatus);
     void on_textEditDebug_textChanged();
 
     void on_checkBoxChannel_toggled(bool checked);
@@ -68,6 +72,8 @@ private slots:
     void on_pushButtonSelectCapturesDir_clicked();
 
     void on_pushButtonSelectAirserv_clicked();
+
+    void on_checkBoxUseFileDev_toggled(bool checked);
 
 private:
     Ui::GuifiDecrypter *ui;

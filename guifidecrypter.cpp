@@ -23,7 +23,7 @@
 #include "ui_guifidecrypter.h"
 
 
-GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
+GuifiDecrypter::GuifiDecrypter(QWidget *parent):
     QMainWindow(parent),
     ui(new Ui::GuifiDecrypter)
 {
@@ -31,11 +31,16 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
     restoreSettings();
     timerXmlLoop = new QTimer(this);
     connect(timerXmlLoop, SIGNAL(timeout()), this, SLOT(readXml()));
-    xmlfilename = "/tmp/1304109527.0-01.kismet.netxml"; //This is just for debug
+    xmlfilename = ":D";
     airodumpProcess = new QProcess(this);
     airservProcess = new QProcess(this);
+
     connect(airodumpProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onAirodump_finished(int, QProcess::ExitStatus)));
+    connect(airodumpProcess, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(onAirodump_stateChanged(QProcess::ProcessState)));
+
     connect(airservProcess, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(onAirserv_finished(int, QProcess::ExitStatus)));
+    connect(airservProcess, SIGNAL(stateChanged(QProcess::ProcessState)), this, SLOT(onAirserv_stateChanged(QProcess::ProcessState)));
+
     ui->labelOn->setVisible(false);
     ui->labelAction->setVisible(false);
     updateNetworkInterfaces();
@@ -43,7 +48,7 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
 
 GuifiDecrypter::~GuifiDecrypter()
 {
-    qDebug() << "saving settings...";
+    qDebug() << "Saving settings...";
     saveSettings();
     qDebug() << "Stoping process and exit.";
     stopAirodump();
@@ -56,20 +61,38 @@ void GuifiDecrypter::on_checkBoxChannel_toggled(bool checked)
         ui->lineEditChannel->setEnabled(!checked); //awsom :D
 }
 
+void GuifiDecrypter::onAirserv_stateChanged(QProcess::ProcessState newState){
+    if(newState == QProcess::NotRunning){
+        ui->labelAirServStatus->setText("Stopped");
+    }else if(newState == QProcess::Starting){
+        ui->labelAirServStatus->setText("Starting...");
+    }else if (newState == QProcess::Running){
+        ui->labelAirServStatus->setText("Running");
+    }
+}
+
+void GuifiDecrypter::onAirodump_stateChanged(QProcess::ProcessState newState){
+    if(newState == QProcess::NotRunning){
+        ui->labelAirodumpStatus->setText("Stopped");
+    }else if(newState == QProcess::Starting){
+        ui->labelAirodumpStatus->setText("Starting...");
+    }else if (newState == QProcess::Running){
+        ui->labelAirodumpStatus->setText("Running");
+    }
+}
+
+
 void GuifiDecrypter::onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    //QMessageBox::information(this, "", "process finished");
     qDebug() << "Finished airodump" << exitCode << " - " << exitStatus;
     ui->textEditDebug->append(QString("Finished airodump-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
-    ui->labelAirodumpStatus->setText("Stopped");
 }
 
 void GuifiDecrypter::onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus)
 {
-    //QMessageBox::information(this, "", "process finished");
     qDebug() << "Finished airserv" << exitCode << " - " << exitStatus;
     ui->textEditDebug->append(QString("Finished airserv-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
-    ui->labelAirServStatus->setText("Stopped");
+
 }
 
 void GuifiDecrypter::on_textEditDebug_textChanged()
@@ -95,33 +118,37 @@ void GuifiDecrypter::on_toolButtonStart_toggled(bool checked)
     }
 }
 
-void GuifiDecrypter::startAirodump(){
+void GuifiDecrypter::startAirodump()
+{
     QDir airodumpPath = QDir(ui->lineEditSelectAirodumpBin->text());
-    //QDir airodumpPath = aircrackSuitPath.path() + "/bin/airodump-ng";
     QStringList arguments;
     QString filename = "fileouttest"; //use timestamp and session name
-    xmlfilename = ui->lineEditSelectCapturesDir->text()+ "/" + filename +"-01.kismet.netxml";
-    arguments << "-w" << ui->lineEditSelectCapturesDir->text()+"/"+filename << "127.0.0.1:"+ui->lineEditAirservPort->text();
+    QString secondsuid = getSecondsUID();
+    xmlfilename = ui->lineEditSelectCapturesDir->text()+ "/" + secondsuid + filename +"-01.kismet.netxml";
+    arguments << "-w" << ui->lineEditSelectCapturesDir->text()+"/"+ secondsuid + filename << "127.0.0.1:"+ui->lineEditAirservPort->text();
     qDebug() << airodumpPath.path() << " " << arguments;
     airodumpProcess->start(airodumpPath.path(), arguments);
-    ui->labelAirodumpStatus->setText("Running");
 }
 
-void GuifiDecrypter::startAirserv(){
+void GuifiDecrypter::startAirserv()
+{
     QDir airservPath = QDir(ui->lineEditSelectAirservBin->text());
-    //QDir airservPath = aircrackSuitPath.path() + "/bin/airserv-ng";
     QStringList arguments;
+    if(ui->checkBoxUseFileDev->isEnabled()){
+        QString device = ui->lineEditAirservDev->text();
+    }else{
+        QString device = ui->comboBoxInterfaceAirserv->currentText();
+    }
     arguments << "-d" << ui->lineEditAirservDev->text() << "-p" << ui->lineEditAirservPort->text() << "-c" << "7";
     qDebug() << airservPath.path() << " " << arguments;
     airservProcess->start(airservPath.path(), arguments);
-    ui->labelAirServStatus->setText("Running");
 }
 
 void GuifiDecrypter::stopAirserv(){airservProcess->close();}
 void GuifiDecrypter::stopAirodump(){airodumpProcess->close();}
 
-
-void GuifiDecrypter::updateNetworkInterfaces(){
+void GuifiDecrypter::updateNetworkInterfaces()
+{
     //NOTE: The new airodump-ng seems to have
     //hability to capture from various interfaces
     //at same time. Keep Watching this.
@@ -130,7 +157,8 @@ void GuifiDecrypter::updateNetworkInterfaces(){
     ui->comboBoxInterface->clear();
     ui->comboBoxInterfaceAirserv->clear();
     ui->comboBoxInterface->addItem("Use airserv-ng");
-    foreach( iface, list ){
+    foreach( iface, list )
+    {
         ui->comboBoxInterface->addItem(iface.humanReadableName());//in unix humanReadableName prints the same as name()
         ui->comboBoxInterfaceAirserv->addItem(iface.humanReadableName());//in unix humanReadableName prints the same as name()
         qDebug() << "fount interface: " << iface.humanReadableName();
@@ -144,7 +172,6 @@ void GuifiDecrypter::on_pushButtonAirservDevFile_clicked()
     QString filename = airservDevDialog->getOpenFileName(this,tr("Select Airdev-ng device file"));
     if(filename.length() > 0){
         ui->lineEditAirservDev->setText(filename);
-
     }
 }
 
@@ -154,7 +181,6 @@ void GuifiDecrypter::on_pushButtonSelectAirserv_clicked()
     QString filename = airservDialog->getOpenFileName(this,tr("Select airserv-ng.exe"));
     if(filename.length() > 0){
         ui->lineEditSelectAirservBin->setText(filename);
-
     }
 }
 
@@ -171,6 +197,14 @@ void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
     }
 }
 
+void GuifiDecrypter::on_checkBoxUseFileDev_toggled(bool checked)
+{
+    ui->lineEditAirservDev->setEnabled(checked);
+    ui->pushButtonAirservDevFile->setEnabled(checked);
+    ui->comboBoxInterfaceAirserv->setEnabled(!checked);
+}
+
+
 void GuifiDecrypter::on_pushButtonSelectCapturesDir_clicked()
 {
     QFileDialog *capturesdir = new QFileDialog;
@@ -179,12 +213,12 @@ void GuifiDecrypter::on_pushButtonSelectCapturesDir_clicked()
     if(dirpath.length() > 0){
         ui->lineEditSelectCapturesDir->setText(dirpath);
 
-
         //TODO: Check if binary exist
     }
 }
 
-void GuifiDecrypter::saveSettings(){
+void GuifiDecrypter::saveSettings()
+{
    QSettings settings("GuifiD", "QGuifi");
    settings.setValue("paths/lineEditSelectCapturesDir", ui->lineEditSelectCapturesDir->text());
    settings.setValue("paths/lineEditSelectAirodumpBin", ui->lineEditSelectAirodumpBin->text());
@@ -192,7 +226,8 @@ void GuifiDecrypter::saveSettings(){
    settings.setValue("paths/lineEditAirservDev", ui->lineEditAirservDev->text());
 }
 
-void GuifiDecrypter::restoreSettings(){
+void GuifiDecrypter::restoreSettings()
+{
     QSettings settings("GuifiD", "QGuifi");
     qDebug() << "Restoring settings";
     qDebug() << settings.value("path/lineEditSelectCapturesDir").toString();
@@ -203,7 +238,8 @@ void GuifiDecrypter::restoreSettings(){
 }
 
 
-void GuifiDecrypter::readXml(){
+void GuifiDecrypter::readXml()
+{
     QFile file(xmlfilename);
 
     ui->labelAction->setVisible(true);
@@ -215,8 +251,8 @@ void GuifiDecrypter::readXml(){
         ui->textEditDebug->append("No file " + xmlfilename);
         startAirodump();
     }
-    else{
-
+    else
+    {
         QXmlStreamReader xml(&file);
         while (!xml.atEnd() && !xml.hasError())
         {
@@ -224,8 +260,6 @@ void GuifiDecrypter::readXml(){
             if (xml.isStartElement() && xml.name() == "wireless-network")
             {
                 parseWirelessNetwork(xml);
-                //qDebug() << "Element Name: " << xml.name();
-                //qDebug() << "Text: " << xml.readElementText();
             }
             else if (xml.hasError())
             {
@@ -244,7 +278,8 @@ void GuifiDecrypter::readXml(){
     ui->labelAction->setVisible(false);
 }
 
-void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
+void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml)
+{
     QString bssid, pwr, data, ch, mb, enc, essid, lts;
     QStringList columns;
     QTreeWidget * tree = ui->treeWidgetNetworks;
@@ -297,10 +332,15 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
     }else{
         tree->addTopLevelItem(new QTreeWidgetItem(columns));
     }
-
 }
 
-
+QString GuifiDecrypter::getSecondsUID(){
+    QDateTime past(QDate(1985, 7, 21), QTime(0, 0));
+    QDateTime now = QDateTime::currentDateTime();
+    QString elapsed = QString("%1").arg(past.secsTo(now));
+    qDebug() << "Time elapsed in seconds " + elapsed;
+    return elapsed;
+}
 
 
 
@@ -330,9 +370,4 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
 //columns << QString("columna7");
 
 //tree->addTopLevelItem(new QTreeWidgetItem(columns));
-
-
-
-
-
 
