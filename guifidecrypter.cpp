@@ -28,6 +28,7 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
     ui(new Ui::GuifiDecrypter)
 {
     ui->setupUi(this);
+    restoreSettings();
     timerXmlLoop = new QTimer(this);
     connect(timerXmlLoop, SIGNAL(timeout()), this, SLOT(readXml()));
     xmlfilename = "/tmp/1304109527.0-01.kismet.netxml"; //This is just for debug
@@ -42,6 +43,11 @@ GuifiDecrypter::GuifiDecrypter(QWidget *parent) :
 
 GuifiDecrypter::~GuifiDecrypter()
 {
+    qDebug() << "saving settings...";
+    saveSettings();
+    qDebug() << "Stoping process and exit.";
+    stopAirodump();
+    stopAirserv();
     delete ui;
 }
 
@@ -138,15 +144,17 @@ void GuifiDecrypter::on_pushButtonAirservDevFile_clicked()
     QString filename = airservDevDialog->getOpenFileName(this,tr("Select Airdev-ng device file"));
     if(filename.length() > 0){
         ui->lineEditAirservDev->setText(filename);
+
     }
 }
 
 void GuifiDecrypter::on_pushButtonSelectAirserv_clicked()
 {
     QFileDialog *airservDialog = new QFileDialog;
-    QString filename = airservDialog->getOpenFileName(this,tr("Select Airdev-ng.exe"));
+    QString filename = airservDialog->getOpenFileName(this,tr("Select airserv-ng.exe"));
     if(filename.length() > 0){
         ui->lineEditSelectAirservBin->setText(filename);
+
     }
 }
 
@@ -158,6 +166,7 @@ void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
     QString filename = aircrackdir->getOpenFileName(this,tr("Select Aircrack-ng.exe"));
     if(filename.length() > 0){
         ui->lineEditSelectAirodumpBin->setText(filename);
+
         //TODO: Check if binary exist
     }
 }
@@ -169,9 +178,30 @@ void GuifiDecrypter::on_pushButtonSelectCapturesDir_clicked()
     QString dirpath = capturesdir->getExistingDirectory(this,tr("Select Aircrack-ng captures out directory"));
     if(dirpath.length() > 0){
         ui->lineEditSelectCapturesDir->setText(dirpath);
+
+
         //TODO: Check if binary exist
     }
 }
+
+void GuifiDecrypter::saveSettings(){
+   QSettings settings("GuifiD", "QGuifi");
+   settings.setValue("paths/lineEditSelectCapturesDir", ui->lineEditSelectCapturesDir->text());
+   settings.setValue("paths/lineEditSelectAirodumpBin", ui->lineEditSelectAirodumpBin->text());
+   settings.setValue("paths/lineEditSelectAirservBin", ui->lineEditSelectAirservBin->text());
+   settings.setValue("paths/lineEditAirservDev", ui->lineEditAirservDev->text());
+}
+
+void GuifiDecrypter::restoreSettings(){
+    QSettings settings("GuifiD", "QGuifi");
+    qDebug() << "Restoring settings";
+    qDebug() << settings.value("path/lineEditSelectCapturesDir").toString();
+    ui->lineEditSelectCapturesDir->setText(settings.value("paths/lineEditSelectCapturesDir").toString());
+    ui->lineEditSelectAirodumpBin->setText(settings.value("paths/lineEditSelectAirodumpBin").toString());
+    ui->lineEditSelectAirservBin->setText(settings.value("paths/lineEditSelectAirservBin").toString());
+    ui->lineEditAirservDev->setText(settings.value("paths/lineEditAirservDev").toString());
+}
+
 
 void GuifiDecrypter::readXml(){
     QFile file(xmlfilename);

@@ -53,6 +53,8 @@ private slots:
     void startAirserv();
     void stopAirodump();
     void stopAirserv();
+    void restoreSettings();
+    void saveSettings();
     void onAirodump_finished(int exitCode, QProcess::ExitStatus exitStatus);
     void onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus);
     void on_textEditDebug_textChanged();
@@ -73,6 +75,7 @@ private:
     QString xmlfilename;
     QProcess *airodumpProcess;
     QProcess *airservProcess;
+
 
 };
 
