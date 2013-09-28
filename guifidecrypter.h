@@ -65,6 +65,8 @@ private slots:
 
     void on_pushButtonSelectCapturesDir_clicked();
 
+    void on_pushButtonSelectAirserv_clicked();
+
 private:
     Ui::GuifiDecrypter *ui;
     QTimer *timerXmlLoop;

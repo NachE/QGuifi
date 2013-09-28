@@ -46,7 +46,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_18">
+             <widget class="QLabel" name="labelAirServStatus">
               <property name="text">
                <string>Stopped</string>
               </property>
@@ -67,7 +67,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QLabel" name="label_20">
+             <widget class="QLabel" name="labelAirodumpStatus">
               <property name="text">
                <string>Stopped</string>
               </property>
@@ -318,14 +318,14 @@
           <item row="3" column="0">
            <widget class="QLabel" name="label_10">
             <property name="text">
-             <string>Aircrack-ng Suit Directory:</string>
+             <string>airodump-ng.exe location:</string>
             </property>
            </widget>
           </item>
           <item row="3" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QLineEdit" name="lineEditSelectAirDir">
+             <widget class="QLineEdit" name="lineEditSelectAirodumpBin">
               <property name="text">
                <string/>
               </property>
@@ -337,7 +337,7 @@
             <item>
              <widget class="QPushButton" name="pushButtonSelectAirDir">
               <property name="text">
-               <string>Select Dir ...</string>
+               <string>Select File ...</string>
               </property>
              </widget>
             </item>
@@ -464,14 +464,14 @@
             </property>
            </widget>
           </item>
-          <item row="8" column="0">
+          <item row="9" column="0">
            <widget class="QLabel" name="label_16">
             <property name="text">
              <string>Interface:</string>
             </property>
            </widget>
           </item>
-          <item row="8" column="1">
+          <item row="9" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_6">
             <item>
              <widget class="QComboBox" name="comboBoxInterfaceAirserv"/>
@@ -491,21 +491,21 @@
             </item>
            </layout>
           </item>
-          <item row="10" column="0">
+          <item row="11" column="0">
            <widget class="QLabel" name="label_17">
             <property name="text">
              <string>Port to listen:</string>
             </property>
            </widget>
           </item>
-          <item row="10" column="1">
+          <item row="11" column="1">
            <widget class="QLineEdit" name="lineEditAirservPort">
             <property name="text">
              <string>666</string>
             </property>
            </widget>
           </item>
-          <item row="9" column="1">
+          <item row="10" column="1">
            <layout class="QHBoxLayout" name="horizontalLayout_9">
             <item>
              <widget class="QCheckBox" name="checkBox">
@@ -523,6 +523,27 @@
             </item>
             <item>
              <widget class="QPushButton" name="pushButtonAirservDevFile">
+              <property name="text">
+               <string>Select File ...</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item row="8" column="0">
+           <widget class="QLabel" name="label_18">
+            <property name="text">
+             <string>airserv-ng.exe location:</string>
+            </property>
+           </widget>
+          </item>
+          <item row="8" column="1">
+           <layout class="QHBoxLayout" name="horizontalLayout_7">
+            <item>
+             <widget class="QLineEdit" name="lineEditSelectAirservBin"/>
+            </item>
+            <item>
+             <widget class="QPushButton" name="pushButtonSelectAirserv">
               <property name="text">
                <string>Select File ...</string>
               </property>

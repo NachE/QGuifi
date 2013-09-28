@@ -55,6 +55,7 @@ void GuifiDecrypter::onAirodump_finished(int exitCode, QProcess::ExitStatus exit
     //QMessageBox::information(this, "", "process finished");
     qDebug() << "Finished airodump" << exitCode << " - " << exitStatus;
     ui->textEditDebug->append(QString("Finished airodump-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
+    ui->labelAirodumpStatus->setText("Stopped");
 }
 
 void GuifiDecrypter::onAirserv_finished(int exitCode, QProcess::ExitStatus exitStatus)
@@ -62,6 +63,7 @@ void GuifiDecrypter::onAirserv_finished(int exitCode, QProcess::ExitStatus exitS
     //QMessageBox::information(this, "", "process finished");
     qDebug() << "Finished airserv" << exitCode << " - " << exitStatus;
     ui->textEditDebug->append(QString("Finished airserv-ng:\n\tExitCode: %1 \n\texit Status: %2").arg(exitCode).arg(exitStatus));
+    ui->labelAirServStatus->setText("Stopped");
 }
 
 void GuifiDecrypter::on_textEditDebug_textChanged()
@@ -88,20 +90,25 @@ void GuifiDecrypter::on_toolButtonStart_toggled(bool checked)
 }
 
 void GuifiDecrypter::startAirodump(){
-    //DONE ME, USE WIDGETS
-    QString command = "/bin/touch";
+    QDir airodumpPath = QDir(ui->lineEditSelectAirodumpBin->text());
+    //QDir airodumpPath = aircrackSuitPath.path() + "/bin/airodump-ng";
     QStringList arguments;
-    arguments << "/tmp/testttttttttttttttttttt";
-    airodumpProcess->start(command, arguments);
+    QString filename = "fileouttest"; //use timestamp and session name
+    xmlfilename = ui->lineEditSelectCapturesDir->text()+ "/" + filename +"-01.kismet.netxml";
+    arguments << "-w" << ui->lineEditSelectCapturesDir->text()+"/"+filename << "127.0.0.1:"+ui->lineEditAirservPort->text();
+    qDebug() << airodumpPath.path() << " " << arguments;
+    airodumpProcess->start(airodumpPath.path(), arguments);
+    ui->labelAirodumpStatus->setText("Running");
 }
 
 void GuifiDecrypter::startAirserv(){
-    QDir aircrackSuitPath = QDir(ui->lineEditSelectAirDir->text());
-    QDir airservPath = aircrackSuitPath.path() + "/bin/airserv-ng";
+    QDir airservPath = QDir(ui->lineEditSelectAirservBin->text());
+    //QDir airservPath = aircrackSuitPath.path() + "/bin/airserv-ng";
     QStringList arguments;
     arguments << "-d" << ui->lineEditAirservDev->text() << "-p" << ui->lineEditAirservPort->text() << "-c" << "7";
     qDebug() << airservPath.path() << " " << arguments;
     airservProcess->start(airservPath.path(), arguments);
+    ui->labelAirServStatus->setText("Running");
 }
 
 void GuifiDecrypter::stopAirserv(){airservProcess->close();}
@@ -134,13 +141,23 @@ void GuifiDecrypter::on_pushButtonAirservDevFile_clicked()
     }
 }
 
+void GuifiDecrypter::on_pushButtonSelectAirserv_clicked()
+{
+    QFileDialog *airservDialog = new QFileDialog;
+    QString filename = airservDialog->getOpenFileName(this,tr("Select Airdev-ng.exe"));
+    if(filename.length() > 0){
+        ui->lineEditSelectAirservBin->setText(filename);
+    }
+}
+
+
 void GuifiDecrypter::on_pushButtonSelectAirDir_clicked()
 {
     QFileDialog *aircrackdir = new QFileDialog;
-    aircrackdir->setFileMode(QFileDialog::Directory);
-    QString dirpath = aircrackdir->getExistingDirectory(this,tr("Select Aircrack-ng directory"));
-    if(dirpath.length() > 0){
-        ui->lineEditSelectAirDir->setText(dirpath);
+    //aircrackdir->setFileMode(QFileDialog::Directory);
+    QString filename = aircrackdir->getOpenFileName(this,tr("Select Aircrack-ng.exe"));
+    if(filename.length() > 0){
+        ui->lineEditSelectAirodumpBin->setText(filename);
         //TODO: Check if binary exist
     }
 }
@@ -149,7 +166,7 @@ void GuifiDecrypter::on_pushButtonSelectCapturesDir_clicked()
 {
     QFileDialog *capturesdir = new QFileDialog;
     capturesdir->setFileMode(QFileDialog::Directory);
-    QString dirpath = capturesdir->getExistingDirectory(this,tr("Select Aircrack-ng directory"));
+    QString dirpath = capturesdir->getExistingDirectory(this,tr("Select Aircrack-ng captures out directory"));
     if(dirpath.length() > 0){
         ui->lineEditSelectCapturesDir->setText(dirpath);
         //TODO: Check if binary exist
@@ -166,6 +183,7 @@ void GuifiDecrypter::readXml(){
     {
         qDebug() << "No file " << xmlfilename;
         ui->textEditDebug->append("No file " + xmlfilename);
+        startAirodump();
     }
     else{
 
@@ -282,6 +300,8 @@ void GuifiDecrypter::parseWirelessNetwork(QXmlStreamReader& xml){
 //columns << QString("columna7");
 
 //tree->addTopLevelItem(new QTreeWidgetItem(columns));
+
+
 
 
 
